@@ -1,0 +1,75 @@
+.section {
+	border: 2px solid;
+	padding: 1rem 2rem;
+}
+
+.section + .section {
+	margin-top: 1rem;
+}
+
+.currentWord {
+	text-align: center;
+}
+
+.actions-panel {
+	width: 100%;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 1rem;
+}
+
+[class$="-btn"] {
+	padding: 1rem;
+	color: black;
+	font-weight: 800;
+	font-family: inherit;
+}
+
+[class$="-btn"]:hover {
+	filter: brightness(2);
+}
+
+[class$="-btn"]:disabled {
+	filter: grayscale(1);
+}
+
+.accentColor {
+	color:  rgb(198, 140, 222);
+}
+
+.addLetter-btn {
+	background-color: rgb(198, 140, 222);
+	border: none;
+}
+
+.addLetter-input {
+	width: 2ch;
+	height: 100%;
+	font-size: 2rem;
+	text-align: center;
+	font-family: inherit;
+}
+
+.addLetter-container {
+	height: 100%;
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+	width: 100%;
+}
+
+.challenge-btn {
+	background-color: rgb(238, 138, 98);
+	border: none;
+}
+
+/* https://css-tricks.com/inclusively-hidden/ */
+.visually-hidden:not(:focus):not(:active) {
+	clip: rect(0 0 0 0); 
+	clip-path: inset(50%);
+	height: 1px;
+	overflow: hidden;
+	position: absolute;
+	white-space: nowrap; 
+	width: 1px;
+  }
