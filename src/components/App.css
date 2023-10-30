@@ -1,4 +1,4 @@
-.section {
+/* .section {
 	border: 2px solid;
 	padding: 1rem 2rem;
 }
@@ -9,6 +9,7 @@
 
 .currentWord {
 	text-align: center;
+	font-size: 2rem;
 }
 
 .actions-panel {
@@ -63,7 +64,6 @@
 	border: none;
 }
 
-/* https://css-tricks.com/inclusively-hidden/ */
 .visually-hidden:not(:focus):not(:active) {
 	clip: rect(0 0 0 0); 
 	clip-path: inset(50%);
@@ -72,4 +72,44 @@
 	position: absolute;
 	white-space: nowrap; 
 	width: 1px;
-  }
+} 
+
+/* https://css-tricks.com/inclusively-hidden/ */
+
+.section, .logs, h1, h2 {
+	text-align: center;
+}
+
+.appContainer {
+	align-items: center;
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+	margin: 0;
+	padding: 0;
+}
+
+.currentWord {
+	display: block;
+	min-height: 1rem;
+	min-width: 1ch;
+	border: 1px solid blue;
+}
+
+.currentWordContainer {
+	display: flex;
+	justify-content: center;
+}
+
+button, input {
+	background: none;
+	border: 1px solid blue;
+}
+
+ul, li {
+	list-style: none;
+	text-decoration: none;
+	list-style-type: none;
+	padding: 0;
+	margin: 0;
+}
