@@ -1,5 +1,6 @@
 // =====
 // Model types
+
 export type Player = {
 	isHuman: boolean,
 	name: string,
@@ -9,17 +10,23 @@ export type Player = {
 
 export type GameState = {
 	word: string;
-	players: Array<Player>;
-	currentPlayer: Player;
+	players: Record<string, Player>;
+	turnOrder: Array<string>;
+	currentPlayer: string;
 	gameSpeed: number;
 	log: Array<string>;
+	isActiveChallenge: boolean;
 }
+
 
 // =====
 // Reducer action types
+
 export enum ActionType {
 	Challenge,
 	AddLetter,
+	ResolveChallengeWithWord,
+	ResolveChallengeWithDefeat
 }
 
 type Action<T extends ActionType, U> = {
@@ -29,10 +36,14 @@ type Action<T extends ActionType, U> = {
 
 export type RAction =
 	Action<ActionType.AddLetter, { letter: string, position: StringEndPosition }>
-	| Action<ActionType.Challenge, null>;
+	| Action<ActionType.Challenge, null>
+	| Action<ActionType.ResolveChallengeWithDefeat, null>
+	| Action<ActionType.ResolveChallengeWithWord, { word: string }>;
+
 
 // =====
 // Misc. or helper types
+
 export enum StringEndPosition {
 	Head,
 	Tail

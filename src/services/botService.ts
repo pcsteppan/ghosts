@@ -1,9 +1,6 @@
-import { c } from "vitest/dist/reporters-5f784f42.js";
 import { AddLetterResult, SliceMatchResult, StringEndPosition } from "../types/generalTypes";
 
-const MinimumWordLength = 3;
-
-const shuffle = (words: Array<string>): Array<string> => {
+export const shuffle = (words: Array<string>): Array<string> => {
 	return [...words].sort(() => Math.random() - .5);
 }
 
@@ -45,13 +42,27 @@ export const getAllValidLettersToAdd = (wordpart: string, lexicon: Array<string>
 	return valid_words;
 }
 
-export const getBestLettersToAdd = (wordpart: string, lexicon: Array<string>)
+export const getBestLettersToAdd = (wordpart: string, lexicon: Array<string>, excludeFullwords = true)
 	: Array<AddLetterResult> => {
 
-	const allResults = getAllValidLettersToAdd(wordpart, lexicon);
+	const allResults = getAllValidLettersToAdd(wordpart, lexicon)
+		.filter(result => !(excludeFullwords && result.source.length === wordpart.length + 1));
+	console.log({ allResults });
 	const bestLength = Math.max(...allResults.map(r => r.source.length));
 
 	return allResults.filter(r => r.source.length === bestLength);
+}
+
+export const getBotLetterToAdd = (wordpart: string, lexicon: Array<string>)
+	: Array<AddLetterResult> => {
+
+	const bestValidLetters = getBestLettersToAdd(wordpart, lexicon);
+	console.log(bestValidLetters);
+	if (bestValidLetters.length > 0) {
+		return bestValidLetters;
+	}
+
+	return getBestBluffLettersToAdd(wordpart, lexicon);
 }
 
 export const getBestBluffLettersToAdd = (wordpart: string, lexicon: Array<string>)
@@ -64,17 +75,23 @@ export const getBestBluffLettersToAdd = (wordpart: string, lexicon: Array<string
 		const headWordpart = wordpart.substring(0, substringLength);
 		const endWordpart = wordpart.substring(wordpart.length - substringLength);
 
-		console.log(headWordpart, endWordpart)
-
 		bluffs = [
 			...getAllValidLettersToAdd(headWordpart, lexicon).filter(word => word.position === StringEndPosition.Head),
 			...getAllValidLettersToAdd(endWordpart, lexicon).filter(word => word.position === StringEndPosition.Tail),
-		]
-
-		console.log(bluffs)
+		].filter(result => result.source.length !== wordpart.length + 1)
 
 		substringLength--;
 	}
 
 	return bluffs;
 }
+
+const getPlayerAwayByN = (n: number) => {
+	return (turnOrder: Array<string>, playerName: string) => {
+		const i = turnOrder.findIndex(p => p === playerName);
+		return turnOrder[(i + turnOrder.length + n) % turnOrder.length];
+	}
+}
+
+export const getNextPlayer = getPlayerAwayByN(1);
+export const getPreviousPlayer = getPlayerAwayByN(-1);
