@@ -1,8 +1,15 @@
-import React from "react";
+import React, { PropsWithChildren } from "react";
 import { ActionType, StringEndPosition } from "../types/generalTypes";
 import './AddLetterButton.css';
 
-export function AddLetterButton({dispatch, position}: {dispatch: (action: any) => void, position: StringEndPosition}) {
+type AddLetterButtonProps = {
+	dispatch: (action: any) => void, 
+	position: StringEndPosition,
+	disabled: boolean,
+	hotkey: string
+};
+
+export function AddLetterButton({dispatch, position, children, disabled, hotkey}: PropsWithChildren<AddLetterButtonProps>) {
 	
 	const [acceptInput, setAcceptInput] = React.useState(false);
 	const [letterInput, setLetterInput] = React.useState('');
@@ -14,6 +21,7 @@ export function AddLetterButton({dispatch, position}: {dispatch: (action: any) =
 	const handleSubmitLetter = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 
+		console.log('handling submit letter');
 		console.log(e);
 
 		if(letterInput.length !== 1 || !acceptInput) {
@@ -31,6 +39,26 @@ export function AddLetterButton({dispatch, position}: {dispatch: (action: any) =
 		setAcceptInput(false);
 		setLetterInput('');
 	}
+	
+	React.useEffect(() => {
+		const handleKeyDown = (keyEvent: KeyboardEvent) => {
+			// console.log(disabled, keyEvent, hotkey,, ke acceptInput);
+			if(!disabled && keyEvent.key === hotkey) {
+				setAcceptInput(true);
+				if(inputRef?.current) {
+					inputRef.current.focus();
+				}
+			}
+		}
+
+		window.addEventListener('keydown', handleKeyDown);
+	
+		return () => {
+			window.removeEventListener('keydown', handleKeyDown);
+		};
+	}, [hotkey, disabled]);
+
+	const inputRef = React.useRef<HTMLInputElement>(null);
 
 	return (
 		<>
@@ -41,14 +69,18 @@ export function AddLetterButton({dispatch, position}: {dispatch: (action: any) =
 					<input 
 						type='text' 
 						className='letterInput'
+						disabled={disabled}
 						value={letterInput}
 						autoFocus
+						ref={inputRef}
 						onChange={e => handleSetLetterInput(e.target.value)}>
 					</input>
 				</form>
 			:
-				<button onClick={() => setAcceptInput(true)} hidden={acceptInput}>
-					+
+				<button onClick={() => setAcceptInput(true)} hidden={acceptInput} disabled={disabled}>
+					{
+						children ? children : '+'
+					}
 				</button>
 			}
 		</>

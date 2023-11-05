@@ -10,14 +10,15 @@ import { lexicon } from '../data/words';
 function App() {
   const initalPlayers: Array<Player> = [
     {isHuman: true, name: 'patrick', losses: 0},
-    {isHuman: false, name: 'olimar', losses: 0}
+    {isHuman: false, name: 'olimar', losses: 0},
+    {isHuman: false, name: 'ears', losses: 0},
   ];
 
   const initialState : GameState = {
     word: '',
     players: initalPlayers,
     currentPlayer: initalPlayers[0],
-    gameSpeed: 2000,
+    gameSpeed: 400,
     log: []
   }
 
@@ -30,6 +31,7 @@ function App() {
         }
       case ActionType.AddLetter:
         {
+          console.log('state', state);
           const nextPlayer = state.players[(state.players.findIndex(p => p === state.currentPlayer) + 1) % state.players.length];
           let newWord = state.word;
 
@@ -46,6 +48,7 @@ function App() {
             
             const newPlayers = [...state.players];
             const index = newPlayers.findIndex(p => p === state.currentPlayer);
+            console.log('updating new player losses');
             console.log(newPlayers[index].losses);
             newPlayers[index].losses += 1;
             
@@ -73,8 +76,7 @@ function App() {
   // take AI turn
   React.useEffect(() => {
     if(!state.currentPlayer.isHuman && state.word !== '') {
-      setTimeout(() => {
-        // randomGoalWord = shuffle(common_words.filter(word => word.includes(state.word)))
+      const timeoutId = setTimeout(() => {
         const validLettersToAdd = getAllValidLettersToAdd(state.word, lexicon);
 
         if(validLettersToAdd.length > 0) {
@@ -87,10 +89,12 @@ function App() {
             }
           })
         } else {
-          // challenge player
           // try bluffing
+        
         }
       }, state.gameSpeed);
+
+      return () => clearTimeout(timeoutId);
     }
   }, [state])
 
@@ -104,15 +108,33 @@ function App() {
             state.word === ''
               ?
               <>
-                <AddLetterButton dispatch={dispatch} position={StringEndPosition.Head}/>
+                <AddLetterButton 
+                  dispatch={dispatch} 
+                  position={StringEndPosition.Head}
+                  disabled={!state.currentPlayer.isHuman}
+                  hotkey=" ">
+                  +
+                </AddLetterButton>
               </>
               :
               <>
-                <AddLetterButton dispatch={dispatch} position={StringEndPosition.Head}/>
+                <AddLetterButton 
+                  dispatch={dispatch} 
+                  position={StringEndPosition.Head}
+                  disabled={!state.currentPlayer.isHuman}
+                  hotkey="ArrowLeft">
+                  &#8592;
+                </AddLetterButton>
                 <p className='currentWord'>
                   {state.word}
                 </p>
-                <AddLetterButton dispatch={dispatch} position={StringEndPosition.Tail}/>
+                <AddLetterButton 
+                  dispatch={dispatch} 
+                  position={StringEndPosition.Tail}
+                  disabled={!state.currentPlayer.isHuman}
+                  hotkey="ArrowRight">
+                  &#8594;
+                </AddLetterButton>
               </>
           }
         </div>

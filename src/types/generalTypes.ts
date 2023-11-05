@@ -40,6 +40,12 @@ export enum StringEndPosition {
 
 export type SliceMatchResult = {
 	fullWord: string,
-	query: string,
+	wordpart: string,
 	matches: Array<number>
+}
+
+export type AddLetterResult = {
+	letter: string,
+	position: StringEndPosition
+	source: string,
 }
