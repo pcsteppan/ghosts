@@ -3,7 +3,6 @@ import './App.css'
 import { Player, GameState, ActionType, RAction, StringEndPosition } from '../types/generalTypes';
 import { AddLetterButton } from './AddLetterButton';
 import { getBotLetterToAdd, getNextPlayer, getPreviousPlayer } from '../services/botService';
-// import { lexicon } from '../data/words';
 import { big_words as lexicon } from '../data/big_words';
 
 function App() {

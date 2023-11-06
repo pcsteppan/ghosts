@@ -139091,4 +139091,4 @@ export const big_words = [
 	`zwiebacks`,
 	`zwitterion`,
 	`zwitterionic`,
-];
+].filter(word => word.length > 3);
