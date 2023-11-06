@@ -1,9 +1,9 @@
 import React, { PropsWithChildren } from "react";
-import { ActionType, StringEndPosition } from "../types/generalTypes";
+import { ActionType, RAction, StringEndPosition } from "../types/generalTypes";
 import './AddLetterButton.css';
 
 type AddLetterButtonProps = {
-	dispatch: (action: any) => void, 
+	dispatch: (action: RAction) => void, 
 	position: StringEndPosition,
 	disabled: boolean,
 	hotkey: string
@@ -42,7 +42,6 @@ export function AddLetterButton({dispatch, position, children, disabled, hotkey}
 	
 	React.useEffect(() => {
 		const handleKeyDown = (keyEvent: KeyboardEvent) => {
-			// console.log(disabled, keyEvent, hotkey,, ke acceptInput);
 			if(!disabled && keyEvent.key === hotkey) {
 				setAcceptInput(true);
 				if(inputRef?.current) {
@@ -77,7 +76,7 @@ export function AddLetterButton({dispatch, position, children, disabled, hotkey}
 					</input>
 				</form>
 			:
-				<button onClick={() => setAcceptInput(true)} hidden={acceptInput} disabled={disabled}>
+				<button className='letterButton' onClick={() => setAcceptInput(true)} hidden={acceptInput} disabled={disabled}>
 					{
 						children ? children : '+'
 					}

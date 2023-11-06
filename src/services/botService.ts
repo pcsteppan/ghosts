@@ -1,6 +1,6 @@
 import { AddLetterResult, SliceMatchResult, StringEndPosition } from "../types/generalTypes";
 
-export const shuffle = (words: Array<string>): Array<string> => {
+export const shuffle = <T>(words: Array<T>): Array<T> => {
 	return [...words].sort(() => Math.random() - .5);
 }
 
@@ -27,7 +27,8 @@ export const getValidLettersToAdd = (word: string, wordpart: string)
 		.map(result => ({
 			letter: word[result.index],
 			position: result.position,
-			source: matchResults.fullWord
+			source: matchResults.fullWord,
+			isBluff: false
 		}));
 }
 
@@ -47,7 +48,6 @@ export const getBestLettersToAdd = (wordpart: string, lexicon: Array<string>, ex
 
 	const allResults = getAllValidLettersToAdd(wordpart, lexicon)
 		.filter(result => !(excludeFullwords && result.source.length === wordpart.length + 1));
-	console.log({ allResults });
 	const bestLength = Math.max(...allResults.map(r => r.source.length));
 
 	return allResults.filter(r => r.source.length === bestLength);
@@ -56,8 +56,8 @@ export const getBestLettersToAdd = (wordpart: string, lexicon: Array<string>, ex
 export const getBotLetterToAdd = (wordpart: string, lexicon: Array<string>)
 	: Array<AddLetterResult> => {
 
-	const bestValidLetters = getBestLettersToAdd(wordpart, lexicon);
-	console.log(bestValidLetters);
+	const bestValidLetters = getBestLettersToAdd(wordpart, lexicon)
+		.filter(result => result.source.length !== wordpart.length + 1);
 	if (bestValidLetters.length > 0) {
 		return bestValidLetters;
 	}
@@ -78,7 +78,9 @@ export const getBestBluffLettersToAdd = (wordpart: string, lexicon: Array<string
 		bluffs = [
 			...getAllValidLettersToAdd(headWordpart, lexicon).filter(word => word.position === StringEndPosition.Head),
 			...getAllValidLettersToAdd(endWordpart, lexicon).filter(word => word.position === StringEndPosition.Tail),
-		].filter(result => result.source.length !== wordpart.length + 1)
+		]
+			.filter(result => result.source.length !== wordpart.length + 1)
+			.map(result => ({ ...result, isBluff: true }));
 
 		substringLength--;
 	}
@@ -93,5 +95,5 @@ const getPlayerAwayByN = (n: number) => {
 	}
 }
 
-export const getNextPlayer = getPlayerAwayByN(1);
 export const getPreviousPlayer = getPlayerAwayByN(-1);
+export const getNextPlayer = getPlayerAwayByN(1);

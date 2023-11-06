@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { FormEvent } from 'react';
 import './App.css'
 import { Player, GameState, ActionType, RAction, StringEndPosition } from '../types/generalTypes';
 import { AddLetterButton } from './AddLetterButton';
 import { getBotLetterToAdd, getNextPlayer, getPreviousPlayer } from '../services/botService';
-import { lexicon } from '../data/words';
+// import { lexicon } from '../data/words';
+import { big_words as lexicon } from '../data/big_words';
 
 function App() {
   const initialPlayers: Record<string, Player> = {
@@ -26,6 +27,7 @@ function App() {
     gameSpeed: 400,
     log: [],
     isActiveChallenge: false,
+    humanChallengeResponseWord: ''
   }
 
   const [state, dispatch] = React.useReducer((state: GameState, action: RAction) : GameState => {
@@ -38,7 +40,10 @@ function App() {
             ...state,
             currentPlayer: challengedPlayer,
             isActiveChallenge: true,
-            log: [...state.log, state.currentPlayer + ' challenged ' + challengedPlayer]
+            log: [
+              state.currentPlayer + ' challenged ' + challengedPlayer,
+              ...state.log, 
+            ]
           }
         }
       case ActionType.AddLetter:
@@ -67,7 +72,10 @@ function App() {
                 }
               },
               currentPlayer: state.turnOrder[0],
-              log: [...state.log, state.currentPlayer + ' completed a word and lost! ' + newWord]
+              log: [
+                state.currentPlayer + ' completed a word and lost! ' + newWord,
+                ...state.log, 
+              ]
             }
           }
           
@@ -75,7 +83,10 @@ function App() {
             ...state,
             word: newWord,
             currentPlayer: nextPlayer,
-            log: [...state.log, state.currentPlayer + ' added the letter ' + action.payload.letter]
+            log: [
+              state.currentPlayer + ' added the letter ' + action.payload.letter,
+              ...state.log, 
+            ]
           }
         }
       case ActionType.ResolveChallengeWithDefeat:
@@ -88,22 +99,54 @@ function App() {
               losses: state.players[state.currentPlayer].losses + 1 
             }
           },
-          log: [...state.log, state.currentPlayer + ' had no word in mind, and loses the challenge']
+          log: [
+            state.currentPlayer + ' had no word in mind, and loses the challenge',
+            ...state.log,
+          ]
         };
       case ActionType.ResolveChallengeWithWord:
         {
           const challengingPlayer = getNextPlayer(state.turnOrder, state.currentPlayer);
-          return {
-            ...initialState,
-            players: {
-              ...state.players,
-              [challengingPlayer]: {
-                ...state.players[challengingPlayer],
-                losses: state.players[challengingPlayer].losses + 1 
-              }
-            },
-            log: [...state.log, `${state.currentPlayer} refutes with ${action.payload.word} -- ${challengingPlayer} loses the challenge`]
-          };
+          
+          const isValidWord = action.payload.word.includes(state.word)   
+            && (lexicon.includes(action.payload.word) || big_words.includes(action.payload.word));
+
+          if(isValidWord) {
+            return {
+              ...initialState,
+              players: {
+                ...state.players,
+                [challengingPlayer]: {
+                  ...state.players[challengingPlayer],
+                  losses: state.players[challengingPlayer].losses + 1 
+                }
+              },
+              log: [
+                `${state.currentPlayer} refutes with ${action.payload.word} -- ${challengingPlayer} loses the challenge`,
+                ...state.log,
+              ]
+            };
+          } else {
+            return {
+              ...initialState,
+              players: {
+                ...state.players,
+                [state.currentPlayer]: {
+                  ...state.players[state.currentPlayer],
+                  losses: state.players[state.currentPlayer].losses + 1 
+                }
+              },
+              log: [
+                `${state.currentPlayer} refutes with ${action.payload.word}, which is not a valid word -- ${state.currentPlayer} loses the challenge`,
+                ...state.log,
+              ]
+            };
+          }
+        }
+      case ActionType.SetHumanChallengeResponseWord:
+        return {
+          ...state,
+          humanChallengeResponseWord: action.payload.word 
         }
     }
     
@@ -133,15 +176,27 @@ function App() {
           }
         } 
         else {
+          const previousPlayer = state.players[getPreviousPlayer(state.turnOrder, state.currentPlayer)];
+          
           const botsLetterResults = getBotLetterToAdd(state.word, lexicon);
-          const {letter, position} = botsLetterResults[0];
-  
-          dispatch({
-            type: ActionType.AddLetter,
-            payload: {
-              letter,
-              position,
-            }});
+          const {letter, position, isBluff} = botsLetterResults[0];
+          
+          // if the previous player is the human, and the bot has to bluff,
+          // that means there are no valid words
+          // in this case, the bot will challenge the player rather than bluff itself
+
+          if(previousPlayer.isHuman && isBluff) {
+            dispatch({type: ActionType.Challenge, payload: null})
+          }
+          else {
+            // this could be 
+            dispatch({
+              type: ActionType.AddLetter,
+              payload: {
+                letter,
+                position,
+              }});
+          }
         }
       }, state.gameSpeed);
 
@@ -149,11 +204,23 @@ function App() {
     }
   }, [state])
 
+  const handleHumanChallengeWordSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    
+    dispatch({
+      type: ActionType.ResolveChallengeWithWord,
+      payload: {
+        word: state.humanChallengeResponseWord
+      }
+    })
+  }
+
+  
+
   return (
     <div className='appContainer'>
       <h1>ghosts</h1>
       <section className='section'>
-        {/* <h2>current word</h2> */}
         <div className='currentWordContainer'>
           {
             state.word === ''
@@ -162,7 +229,7 @@ function App() {
                 <AddLetterButton 
                   dispatch={dispatch} 
                   position={StringEndPosition.Head}
-                  disabled={!state.players[state.currentPlayer].isHuman}
+                  disabled={!state.players[state.currentPlayer].isHuman || state.isActiveChallenge}
                   hotkey=" ">
                   +
                 </AddLetterButton>
@@ -172,17 +239,21 @@ function App() {
                 <AddLetterButton 
                   dispatch={dispatch} 
                   position={StringEndPosition.Head}
-                  disabled={!state.players[state.currentPlayer].isHuman}
+                  disabled={!state.players[state.currentPlayer].isHuman || state.isActiveChallenge}
                   hotkey="ArrowLeft">
                   &#8592;
                 </AddLetterButton>
                 <p className='currentWord'>
-                  {state.word}
+                  {
+                    [...state.word].map(c => {
+                      return <span className='currentWord--letter'>{c}</span>
+                    })
+                  }
                 </p>
                 <AddLetterButton 
                   dispatch={dispatch} 
                   position={StringEndPosition.Tail}
-                  disabled={!state.players[state.currentPlayer].isHuman}
+                  disabled={!state.players[state.currentPlayer].isHuman || state.isActiveChallenge}
                   hotkey="ArrowRight">
                   &#8594;
                 </AddLetterButton>
@@ -194,6 +265,30 @@ function App() {
           onClick={() => dispatch({type: ActionType.Challenge, payload: null})}>
           challenge
         </button>
+        {
+          state.isActiveChallenge &&
+          <>
+            <form onSubmit={handleHumanChallengeWordSubmit}>
+              <label>
+                you've been challenged, what word did you have in mind? <br/>
+                <input 
+                  value={state.humanChallengeResponseWord} 
+                  autoFocus
+                  onChange={(e) => dispatch({
+                  type: ActionType.SetHumanChallengeResponseWord,
+                  payload: {
+                    word: e.target.value
+                  }
+                })}></input>
+                <button type='submit'>answer</button>
+              </label>
+            </form>
+
+            <button onClick={() => dispatch({type: ActionType.ResolveChallengeWithDefeat, payload: null})}>
+              admit defeat
+            </button>
+          </>
+        }
       </section>
       <section className='section'>
         <h2>players</h2>

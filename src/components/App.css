@@ -76,14 +76,28 @@
 
 /* https://css-tricks.com/inclusively-hidden/ */
 
+* {
+	font-family: 'Courier New', Courier, monospace;
+	font-size: 14px;
+	font-weight: 500;
+}
+
 .section, .logs, h1, h2 {
 	text-align: center;
+}
+
+.section {
+	align-items: center;
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
 }
 
 .appContainer {
 	align-items: center;
 	display: flex;
 	flex-direction: column;
+	gap: 2rem;
 	min-height: 100vh;
 	margin: 0;
 	padding: 0;
@@ -94,6 +108,13 @@
 	min-height: 1rem;
 	min-width: 1ch;
 	border: 1px solid blue;
+}
+
+.currentWord--letter, .letterInput, .letterButton {
+	display: inline-block;
+	padding: .5rem;
+	border: 1px solid blue;
+	font-size: 2rem;
 }
 
 .currentWordContainer {

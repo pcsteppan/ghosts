@@ -16,17 +16,20 @@ export type GameState = {
 	gameSpeed: number;
 	log: Array<string>;
 	isActiveChallenge: boolean;
+	humanChallengeResponseWord: string,
 }
 
 
 // =====
 // Reducer action types
 
+
 export enum ActionType {
 	Challenge,
 	AddLetter,
 	ResolveChallengeWithWord,
-	ResolveChallengeWithDefeat
+	ResolveChallengeWithDefeat,
+	SetHumanChallengeResponseWord
 }
 
 type Action<T extends ActionType, U> = {
@@ -38,7 +41,8 @@ export type RAction =
 	Action<ActionType.AddLetter, { letter: string, position: StringEndPosition }>
 	| Action<ActionType.Challenge, null>
 	| Action<ActionType.ResolveChallengeWithDefeat, null>
-	| Action<ActionType.ResolveChallengeWithWord, { word: string }>;
+	| Action<ActionType.ResolveChallengeWithWord, { word: string }>
+	| Action<ActionType.SetHumanChallengeResponseWord, { word: string }>;
 
 
 // =====
@@ -59,4 +63,5 @@ export type AddLetterResult = {
 	letter: string,
 	position: StringEndPosition
 	source: string,
+	isBluff: boolean
 }
