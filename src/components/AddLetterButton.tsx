@@ -1,5 +1,5 @@
 import React, { PropsWithChildren } from "react";
-import { ActionType, RAction, StringEndPosition } from "../types/generalTypes";
+import { ActionType, RAction, StringEndPosition } from "../types/types";
 import './AddLetterButton.css';
 
 type AddLetterButtonProps = {
@@ -30,10 +30,8 @@ export function AddLetterButton({dispatch, position, children, disabled, hotkey}
 
 		dispatch({
 			type: ActionType.AddLetter,
-			payload: {
-				letter: letterInput,
-				position: position
-			}
+			letter: letterInput,
+			position: position
 		});
 
 		setAcceptInput(false);

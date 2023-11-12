@@ -1,4 +1,4 @@
-import { AddLetterResult, SliceMatchResult, StringEndPosition } from "../types/generalTypes";
+import { AddLetterResult, SliceMatchResult, StringEndPosition } from "../types/types";
 
 export const shuffle = <T>(words: Array<T>): Array<T> => {
 	return [...words].sort(() => Math.random() - .5);
@@ -35,12 +35,13 @@ export const getValidLettersToAdd = (word: string, wordpart: string)
 export const getAllValidLettersToAdd = (wordpart: string, lexicon: Array<string>)
 	: Array<AddLetterResult> => {
 
-	const valid_words = lexicon
+	const validLettersToAdd = lexicon
 		.filter(word => word.includes(wordpart)) // word.length > MinimumWordLength &&
 		.map(word => getValidLettersToAdd(word, wordpart))
-		.flat();
+		.flat()
+		.filter(result => !doesLetterCompleteWord(wordpart, result, lexicon));
 
-	return valid_words;
+	return validLettersToAdd;
 }
 
 export const getBestLettersToAdd = (wordpart: string, lexicon: Array<string>, excludeFullwords = true)
@@ -80,12 +81,24 @@ export const getBestBluffLettersToAdd = (wordpart: string, lexicon: Array<string
 			...getAllValidLettersToAdd(endWordpart, lexicon).filter(word => word.position === StringEndPosition.Tail),
 		]
 			.filter(result => result.source.length !== wordpart.length + 1)
+			.filter(result => !doesLetterCompleteWord(wordpart, result, lexicon))
 			.map(result => ({ ...result, isBluff: true }));
 
 		substringLength--;
 	}
 
 	return bluffs;
+}
+
+const doesLetterCompleteWord = (wordpart: string, result: AddLetterResult, lexicon: Array<string>) => {
+	if (wordpart.length + 1 === result.source.length) {
+		return true;
+	}
+	const potentialNewWordPart = result.position === StringEndPosition.Head
+		? result.letter + wordpart
+		: wordpart + result.letter;
+
+	return lexicon.includes(potentialNewWordPart);
 }
 
 const getPlayerAwayByN = (n: number) => {

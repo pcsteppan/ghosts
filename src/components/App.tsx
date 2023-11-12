@@ -1,155 +1,27 @@
 import React, { FormEvent } from 'react';
 import './App.css'
-import { Player, GameState, ActionType, RAction, StringEndPosition } from '../types/generalTypes';
+import { ActionType, RAction, StringEndPosition, AppState } from '../types/types';
 import { AddLetterButton } from './AddLetterButton';
-import { getBotLetterToAdd, getNextPlayer, getPreviousPlayer } from '../services/botService';
-import { big_words as lexicon } from '../data/big_words';
+import { getBotLetterToAdd, getPreviousPlayer } from '../services/botService';
+import { HistoryComponent } from './History';
+import { initialAppState, reduceOnAppAction } from './AppReducer';
+import { lexicon } from '../data/lexicon';
 
 function App() {
-  const initialPlayers: Record<string, Player> = {
-    'patrick': {isHuman: true, name: 'patrick', losses: 0},
-    'olimar': {isHuman: false, name: 'olimar', losses: 0},
-    'ears': {isHuman: false, name: 'ears', losses: 0},
-  };
-
-  const initialTurnOrder = [
-    'patrick',
-    'olimar',
-    'ears',
-  ];
-
-  const initialState : GameState = {
-    word: '',
-    players: initialPlayers,
-    turnOrder: initialTurnOrder,
-    currentPlayer: initialTurnOrder[0],
-    gameSpeed: 400,
-    log: [],
-    isActiveChallenge: false,
-    humanChallengeResponseWord: ''
-  }
-
-  const [state, dispatch] = React.useReducer((state: GameState, action: RAction) : GameState => {
-    switch(action.type) {
-      case ActionType.Challenge:
+  const [state, dispatch] = React.useReducer((state: AppState, action: RAction) : AppState => {
+    const newState = reduceOnAppAction(state, action);
+    return {
+      ...newState,
+      history: [
+        ...state.history,
         {
-          const challengedPlayer = getPreviousPlayer(state.turnOrder, state.currentPlayer);
-  
-          return {
-            ...state,
-            currentPlayer: challengedPlayer,
-            isActiveChallenge: true,
-            log: [
-              state.currentPlayer + ' challenged ' + challengedPlayer,
-              ...state.log, 
-            ]
-          }
+          action,
+          snapshot: newState
         }
-      case ActionType.AddLetter:
-        {
-          const nextPlayer = getNextPlayer(state.turnOrder, state.currentPlayer);
-          let newWord = state.word;
-
-          switch(action.payload.position) {
-            case StringEndPosition.Head:
-              newWord = action.payload.letter + state.word;
-              break;
-            case StringEndPosition.Tail:
-              newWord += action.payload.letter;
-              break;
-          }
-
-          if(lexicon.includes(newWord)) {
-            return {
-              ...state,
-              word: '',
-              players: {
-                ...state.players,
-                [state.currentPlayer]: {
-                  ...state.players[state.currentPlayer],
-                  losses: state.players[state.currentPlayer].losses + 1
-                }
-              },
-              currentPlayer: state.turnOrder[0],
-              log: [
-                state.currentPlayer + ' completed a word and lost! ' + newWord,
-                ...state.log, 
-              ]
-            }
-          }
-          
-          return {
-            ...state,
-            word: newWord,
-            currentPlayer: nextPlayer,
-            log: [
-              state.currentPlayer + ' added the letter ' + action.payload.letter,
-              ...state.log, 
-            ]
-          }
-        }
-      case ActionType.ResolveChallengeWithDefeat:
-        return {
-          ...initialState,
-          players: {
-            ...state.players,
-            [state.currentPlayer]: {
-              ...state.players[state.currentPlayer],
-              losses: state.players[state.currentPlayer].losses + 1 
-            }
-          },
-          log: [
-            state.currentPlayer + ' had no word in mind, and loses the challenge',
-            ...state.log,
-          ]
-        };
-      case ActionType.ResolveChallengeWithWord:
-        {
-          const challengingPlayer = getNextPlayer(state.turnOrder, state.currentPlayer);
-          
-          const isValidWord = action.payload.word.includes(state.word)   
-            && (lexicon.includes(action.payload.word) || big_words.includes(action.payload.word));
-
-          if(isValidWord) {
-            return {
-              ...initialState,
-              players: {
-                ...state.players,
-                [challengingPlayer]: {
-                  ...state.players[challengingPlayer],
-                  losses: state.players[challengingPlayer].losses + 1 
-                }
-              },
-              log: [
-                `${state.currentPlayer} refutes with ${action.payload.word} -- ${challengingPlayer} loses the challenge`,
-                ...state.log,
-              ]
-            };
-          } else {
-            return {
-              ...initialState,
-              players: {
-                ...state.players,
-                [state.currentPlayer]: {
-                  ...state.players[state.currentPlayer],
-                  losses: state.players[state.currentPlayer].losses + 1 
-                }
-              },
-              log: [
-                `${state.currentPlayer} refutes with ${action.payload.word}, which is not a valid word -- ${state.currentPlayer} loses the challenge`,
-                ...state.log,
-              ]
-            };
-          }
-        }
-      case ActionType.SetHumanChallengeResponseWord:
-        return {
-          ...state,
-          humanChallengeResponseWord: action.payload.word 
-        }
+      ]
     }
     
-  }, initialState);
+  }, initialAppState);
 
   // Defines the actions that bots takes and under what conditions
   // also defines the time interval that spaces out those actions
@@ -163,14 +35,12 @@ function App() {
           if(validWords.length > 0) {
             dispatch({
               type: ActionType.ResolveChallengeWithWord,
-              payload: {
-                word: validWords[0],
-              }});
+              word: validWords[0],
+            })
           }
           else {
             dispatch({
               type: ActionType.ResolveChallengeWithDefeat,
-              payload: null
             });
           }
         } 
@@ -185,16 +55,15 @@ function App() {
           // in this case, the bot will challenge the player rather than bluff itself
 
           if(previousPlayer.isHuman && isBluff) {
-            dispatch({type: ActionType.Challenge, payload: null})
+            dispatch({type: ActionType.Challenge })
           }
           else {
             // this could be 
             dispatch({
               type: ActionType.AddLetter,
-              payload: {
-                letter,
-                position,
-              }});
+              letter,
+              position,
+            })
           }
         }
       }, state.gameSpeed);
@@ -208,9 +77,7 @@ function App() {
     
     dispatch({
       type: ActionType.ResolveChallengeWithWord,
-      payload: {
-        word: state.humanChallengeResponseWord
-      }
+      word: state.humanChallengeResponseWord
     })
   }
 
@@ -261,7 +128,7 @@ function App() {
         </div>
         <button 
           disabled={state.word.length === 0 || !state.players[state.currentPlayer].isHuman || state.isActiveChallenge}
-          onClick={() => dispatch({type: ActionType.Challenge, payload: null})}>
+          onClick={() => dispatch({type: ActionType.Challenge })}>
           challenge
         </button>
         {
@@ -275,15 +142,13 @@ function App() {
                   autoFocus
                   onChange={(e) => dispatch({
                   type: ActionType.SetHumanChallengeResponseWord,
-                  payload: {
-                    word: e.target.value
-                  }
+                  word: e.target.value
                 })}></input>
                 <button type='submit'>answer</button>
               </label>
             </form>
 
-            <button onClick={() => dispatch({type: ActionType.ResolveChallengeWithDefeat, payload: null})}>
+            <button onClick={() => dispatch({ type: ActionType.ResolveChallengeWithDefeat })}>
               admit defeat
             </button>
           </>
@@ -303,18 +168,7 @@ function App() {
           }
         </ul>
       </section>
-      <section>
-        <h2>logs</h2>
-        <ul className='logs'>
-          {
-            state.log.map((m, i) => 
-              <div key={i}>
-                {m}
-              </div>
-              )
-          }
-        </ul>
-      </section>
+      <HistoryComponent history={state} />
     </div>
   )
 }

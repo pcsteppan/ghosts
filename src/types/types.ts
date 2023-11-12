@@ -7,6 +7,9 @@ export type Player = {
 	losses: number
 }
 
+export type History = {
+	history: Array<{ action: RAction, snapshot: GameState }>
+}
 
 export type GameState = {
 	word: string;
@@ -14,33 +17,35 @@ export type GameState = {
 	turnOrder: Array<string>;
 	currentPlayer: string;
 	gameSpeed: number;
-	log: Array<string>;
 	isActiveChallenge: boolean;
-	humanChallengeResponseWord: string,
+	humanChallengeResponseWord: string
 }
 
+export type AppState = GameState & History;
 
 // =====
 // Reducer action types
 
 
 export enum ActionType {
-	Challenge,
+	StartGame,
 	AddLetter,
+	Challenge,
 	ResolveChallengeWithWord,
 	ResolveChallengeWithDefeat,
 	SetHumanChallengeResponseWord
 }
 
-type Action<T extends ActionType, U> = {
+// eslint-disable-next-line @typescript-eslint/ban-types
+type Action<T extends ActionType, U = {}> = {
 	type: T,
-	payload: U
-}
+} & U;
 
 export type RAction =
-	Action<ActionType.AddLetter, { letter: string, position: StringEndPosition }>
-	| Action<ActionType.Challenge, null>
-	| Action<ActionType.ResolveChallengeWithDefeat, null>
+	Action<ActionType.StartGame>
+	| Action<ActionType.AddLetter, { letter: string, position: StringEndPosition }>
+	| Action<ActionType.Challenge>
+	| Action<ActionType.ResolveChallengeWithDefeat>
 	| Action<ActionType.ResolveChallengeWithWord, { word: string }>
 	| Action<ActionType.SetHumanChallengeResponseWord, { word: string }>;
 

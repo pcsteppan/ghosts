@@ -76,13 +76,7 @@
 
 /* https://css-tricks.com/inclusively-hidden/ */
 
-* {
-	font-family: 'Courier New', Courier, monospace;
-	font-size: 14px;
-	font-weight: 500;
-}
-
-.section, .logs, h1, h2 {
+.section, h1, h2 {
 	text-align: center;
 }
 
@@ -107,13 +101,12 @@
 	display: block;
 	min-height: 1rem;
 	min-width: 1ch;
-	border: 1px solid blue;
 }
 
-.currentWord--letter, .letterInput, .letterButton {
+.currentWord--letter, .letterInput {
 	display: inline-block;
 	padding: .5rem;
-	border: 1px solid blue;
+	border-bottom: 2px dotted black;
 	font-size: 2rem;
 }
 
@@ -124,7 +117,7 @@
 
 button, input {
 	background: none;
-	border: 1px solid blue;
+	border: 1px solid black;
 }
 
 ul, li {

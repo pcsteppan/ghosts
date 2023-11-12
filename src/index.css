@@ -16,6 +16,16 @@
 }
 */
 
+@font-face {
+  font-family: "monoselect";
+  src: url('assets/SelectMono-Italic.woff') format('woff');
+}
+
+* {
+  font-family: monoselect;
+  font-size: 14px;
+}
+
 @media (min-width:480px) {
   #root {
     margin: 0 auto;
