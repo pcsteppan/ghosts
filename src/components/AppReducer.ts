@@ -4,15 +4,15 @@ import { getNextPlayer, getPreviousPlayer } from "../services/botService";
 import { ActionType, AppState, GameState, Player, RAction, StringEndPosition } from "../types/types";
 
 const initialPlayers: Record<string, Player> = {
-	'patrick': { isHuman: true, name: 'patrick', losses: 0 },
-	'olimar': { isHuman: false, name: 'olimar', losses: 0 },
-	'ears': { isHuman: false, name: 'ears', losses: 0 },
+	'0': { id: 0, isHuman: true, name: 'patrick', losses: 0 },
+	'1': { id: 1, isHuman: false, name: 'olimar', losses: 0 },
+	'2': { id: 2, isHuman: false, name: 'ears', losses: 0 },
 };
 
 const initialTurnOrder = [
-	'patrick',
-	'olimar',
-	'ears',
+	'0',
+	'1',
+	'2',
 ];
 
 const initialGameState: GameState = {
@@ -30,7 +30,7 @@ export const initialAppState: AppState = {
 	history: [{ action: { type: ActionType.StartGame }, snapshot: initialGameState }]
 }
 
-export function reduceOnAppAction(state: AppState, action: RAction) {
+export function reduceOnAppAction(state: AppState, action: RAction): AppState {
 	switch (action.type) {
 		case ActionType.Challenge:
 			{
@@ -79,7 +79,8 @@ export function reduceOnAppAction(state: AppState, action: RAction) {
 			}
 		case ActionType.ResolveChallengeWithDefeat:
 			return {
-				...initialAppState,
+				...state,
+				word: '',
 				players: {
 					...state.players,
 					[state.currentPlayer]: {
@@ -97,7 +98,9 @@ export function reduceOnAppAction(state: AppState, action: RAction) {
 
 				if (isValidWord) {
 					return {
-						...initialAppState,
+						...state,
+						word: '',
+						isActiveChallenge: false,
 						players: {
 							...state.players,
 							[challengingPlayer]: {
@@ -108,7 +111,9 @@ export function reduceOnAppAction(state: AppState, action: RAction) {
 					};
 				} else {
 					return {
-						...initialAppState,
+						...state,
+						word: '',
+						isActiveChallenge: false,
 						players: {
 							...state.players,
 							[state.currentPlayer]: {
@@ -127,6 +132,51 @@ export function reduceOnAppAction(state: AppState, action: RAction) {
 		case ActionType.StartGame:
 			return {
 				...initialAppState
+			}
+		case ActionType.AddPlayer:
+			{
+				let i = 0;
+				while (state.players[`bot ${++i}`]) { /**/ }
+				const newName = `bot ${i}`;
+				return {
+					...state,
+					players: {
+						...state.players,
+						[newName]: {
+							name: newName,
+							isHuman: false,
+							losses: 0,
+						}
+					},
+					turnOrder: [...state.turnOrder, newName]
+				}
+			}
+		case ActionType.DeletePlayer:
+			{
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				const { [action.playerId]: _, ...newPlayers } = state.players;
+				const newTurnOrder = [
+					...state.turnOrder
+				].filter(playerId => playerId !== action.playerId.toString());
+
+				return {
+					...state,
+					players: {
+						...newPlayers
+					},
+					turnOrder: newTurnOrder,
+					currentPlayer: newTurnOrder[0]
+				}
+			}
+		case ActionType.ChangePlayerName:
+			{
+				const newPlayers = { ...state.players };
+				newPlayers[action.playerId].name = action.newName;
+
+				return {
+					...state,
+					players: newPlayers
+				}
 			}
 	}
 }

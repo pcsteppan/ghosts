@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { getBestBluffLettersToAdd, getBestLettersToAdd, getBotLetterToAdd, getSubstringSliceMatches, getValidLettersToAdd } from "../botService";
+import { getBestBluffLettersToAdd, getBestBotLettersToAdd, getBestLettersToAdd, getBotLetterToAdd, getSubstringSliceMatches, getValidLettersToAdd } from "../botService";
 import { StringEndPosition } from '../../types/types';
 
 test('is true', () => {
@@ -50,6 +50,36 @@ test('get best letters to add', () => {
 	for (const result of bestValidLetters) {
 		expect(result.source).toBe(betterWord);
 	}
+})
+
+test('get best bot letters to add, 2 player', () => {
+	const lexicon = [
+		'bats',   // length 4
+		'chats',  // length 5
+		'attack', // length 6
+	]
+	const wordpart = 'at';
+
+	const bestLettersToAddWith3Players = getBestBotLettersToAdd(wordpart, lexicon, 2);
+	expect(bestLettersToAddWith3Players.length).toBe(2);
+	const letterSet = new Set(bestLettersToAddWith3Players.map(l => l.letter));
+
+	expect(letterSet).toStrictEqual(new Set(['h', 's']));
+})
+
+test('get best bot letters to add, 3 player', () => {
+	const lexicon = [
+		'bats',   // length 4
+		'chats',  // length 5
+		'attack', // length 6
+	]
+	const wordpart = 'at';
+
+	const bestLettersToAddWith3Players = getBestBotLettersToAdd(wordpart, lexicon, 3);
+	expect(bestLettersToAddWith3Players.length).toBe(3);
+	const letterSet = new Set(bestLettersToAddWith3Players.map(l => l.letter));
+
+	expect(letterSet).toStrictEqual(new Set(['b', 's', 't']));
 })
 
 test('get bluffs', () => {
@@ -126,8 +156,6 @@ test('get bot letter to add, avoid completing word', () => {
 	// until valid letters to add can be found in either the head or tail position
 
 	const bestBluffLetters = getBotLetterToAdd(wordpart, lexicon);
-
-	console.log(bestBluffLetters);
 
 	expect(bestBluffLetters.length).toBe(1);
 	expect(bestBluffLetters[0].letter).toBe('s');

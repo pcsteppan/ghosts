@@ -1,0 +1,9 @@
+.section--edit {
+	position: absolute;
+	left: 6rem;
+	top: 0;
+}
+
+.section--header {
+	position: relative;
+}

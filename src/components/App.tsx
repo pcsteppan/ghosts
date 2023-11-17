@@ -2,10 +2,11 @@ import React, { FormEvent } from 'react';
 import './App.css'
 import { ActionType, RAction, StringEndPosition, AppState } from '../types/types';
 import { AddLetterButton } from './AddLetterButton';
-import { getBotLetterToAdd, getPreviousPlayer } from '../services/botService';
+import { getBestBotLettersToAdd, getPreviousPlayer, shuffle } from '../services/botService';
 import { HistoryComponent } from './History';
 import { initialAppState, reduceOnAppAction } from './AppReducer';
 import { lexicon } from '../data/lexicon';
+import { PlayerComponent } from './PlayerComponent';
 
 function App() {
   const [state, dispatch] = React.useReducer((state: AppState, action: RAction) : AppState => {
@@ -26,7 +27,7 @@ function App() {
   // Defines the actions that bots takes and under what conditions
   // also defines the time interval that spaces out those actions
   React.useEffect(() => {
-    if(!state.players[state.currentPlayer].isHuman && state.word !== '') {
+    if(!state.players[state.currentPlayer].isHuman) {
       const timeoutId = setTimeout(() => {
         if(state.isActiveChallenge) {
           // AI is responding to a challenge
@@ -47,8 +48,8 @@ function App() {
         else {
           const previousPlayer = state.players[getPreviousPlayer(state.turnOrder, state.currentPlayer)];
           
-          const botsLetterResults = getBotLetterToAdd(state.word, lexicon);
-          const {letter, position, isBluff} = botsLetterResults[0];
+          const botsLetterResults = getBestBotLettersToAdd(state.word, lexicon, state.turnOrder.length);
+          const {letter, position, isBluff} = shuffle(botsLetterResults)[0];
           
           // if the previous player is the human, and the bot has to bluff,
           // that means there are no valid words
@@ -80,8 +81,6 @@ function App() {
       word: state.humanChallengeResponseWord
     })
   }
-
-  
 
   return (
     <div className='appContainer'>
@@ -132,7 +131,7 @@ function App() {
           challenge
         </button>
         {
-          state.isActiveChallenge &&
+          state.isActiveChallenge && state.players[state.currentPlayer].isHuman &&
           <>
             <form onSubmit={handleHumanChallengeWordSubmit}>
               <label>
@@ -154,20 +153,7 @@ function App() {
           </>
         }
       </section>
-      <section className='section'>
-        <h2>players</h2>
-        <ul className='playerList'>
-          {
-            state.turnOrder.map(player => state.players[player]).map(player =>
-              <div key={player.name}>
-                {player.name === state.currentPlayer ? '>  ' : ''}
-                {player.name} ({player.losses})
-                {player.name === state.currentPlayer ? '  <' : ''} 
-              </div>
-              )
-          }
-        </ul>
-      </section>
+      <PlayerComponent players={state.players} currentPlayer={state.currentPlayer} turnOrder={state.turnOrder} dispatch={dispatch}/>
       <HistoryComponent history={state} />
     </div>
   )

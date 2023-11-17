@@ -21,9 +21,6 @@ export function AddLetterButton({dispatch, position, children, disabled, hotkey}
 	const handleSubmitLetter = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 
-		console.log('handling submit letter');
-		console.log(e);
-
 		if(letterInput.length !== 1 || !acceptInput) {
 			return;
 		}

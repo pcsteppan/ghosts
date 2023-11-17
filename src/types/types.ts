@@ -4,7 +4,8 @@
 export type Player = {
 	isHuman: boolean,
 	name: string,
-	losses: number
+	losses: number,
+	id: number
 }
 
 export type History = {
@@ -33,7 +34,10 @@ export enum ActionType {
 	Challenge,
 	ResolveChallengeWithWord,
 	ResolveChallengeWithDefeat,
-	SetHumanChallengeResponseWord
+	SetHumanChallengeResponseWord,
+	ChangePlayerName,
+	AddPlayer,
+	DeletePlayer
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-types
@@ -47,8 +51,12 @@ export type RAction =
 	| Action<ActionType.Challenge>
 	| Action<ActionType.ResolveChallengeWithDefeat>
 	| Action<ActionType.ResolveChallengeWithWord, { word: string }>
-	| Action<ActionType.SetHumanChallengeResponseWord, { word: string }>;
+	| Action<ActionType.SetHumanChallengeResponseWord, { word: string }>
+	| Action<ActionType.ChangePlayerName, { playerId: number, newName: string }>
+	| Action<ActionType.AddPlayer>
+	| Action<ActionType.DeletePlayer, { playerId: number }>;
 
+export type Dispatch = (action: RAction) => void;
 
 // =====
 // Misc. or helper types

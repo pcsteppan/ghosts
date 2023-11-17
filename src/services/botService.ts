@@ -1,4 +1,5 @@
 import { AddLetterResult, SliceMatchResult, StringEndPosition } from "../types/types";
+import { applyAddLetterResultToWordpart } from "./utils";
 
 export const shuffle = <T>(words: Array<T>): Array<T> => {
 	return [...words].sort(() => Math.random() - .5);
@@ -57,8 +58,43 @@ export const getBestLettersToAdd = (wordpart: string, lexicon: Array<string>, ex
 export const getBotLetterToAdd = (wordpart: string, lexicon: Array<string>)
 	: Array<AddLetterResult> => {
 
+	if (wordpart === '') {
+		return [{
+			letter: shuffle([...'abcdefghijklmnopqrstuvwxyz'])[0],
+			position: StringEndPosition.Head,
+			isBluff: false,
+			source: 'random'
+		}]
+	}
+
 	const bestValidLetters = getBestLettersToAdd(wordpart, lexicon)
 		.filter(result => result.source.length !== wordpart.length + 1);
+	if (bestValidLetters.length > 0) {
+		return bestValidLetters;
+	}
+
+	return getBestBluffLettersToAdd(wordpart, lexicon);
+}
+
+const wordWouldEndOnSelf = (fullWord: string, wordpart: string, playerCount: number) =>
+	(fullWord.length - wordpart.length) % playerCount === 0;
+
+export const getBestBotLettersToAdd = (wordpart: string, lexicon: Array<string>, playerCount: number)
+	: Array<AddLetterResult> => {
+
+	if (wordpart === '') {
+		return [{
+			letter: shuffle([...'abcdefghijklmnopqrstuvwxyz'])[0],
+			position: StringEndPosition.Head,
+			isBluff: false,
+			source: 'random'
+		}]
+	}
+
+	const bestValidLetters = getAllValidLettersToAdd(wordpart, lexicon)
+		.filter(result => result.source.length !== wordpart.length + 1)
+		.filter(result => !wordWouldEndOnSelf(result.source, wordpart, playerCount));
+
 	if (bestValidLetters.length > 0) {
 		return bestValidLetters;
 	}
@@ -94,9 +130,7 @@ const doesLetterCompleteWord = (wordpart: string, result: AddLetterResult, lexic
 	if (wordpart.length + 1 === result.source.length) {
 		return true;
 	}
-	const potentialNewWordPart = result.position === StringEndPosition.Head
-		? result.letter + wordpart
-		: wordpart + result.letter;
+	const potentialNewWordPart = applyAddLetterResultToWordpart(result, wordpart);
 
 	return lexicon.includes(potentialNewWordPart);
 }
