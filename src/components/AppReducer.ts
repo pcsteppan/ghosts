@@ -146,6 +146,7 @@ export function reduceOnAppAction(state: AppState, action: RAction): AppState {
 							name: newName,
 							isHuman: false,
 							losses: 0,
+							id: i
 						}
 					},
 					turnOrder: [...state.turnOrder, newName]
